@@ -1,13 +1,14 @@
 {
   "name": "bot",
   "scripts": {
-    "start": "npx tsx index.ts",
-    "build": "echo 'No build step needed'"
-  },
+  "build": "tsc",
+  "start": "node dist/index.js"
+},
   "dependencies": {
     "axios": "^1.14.0",
     "dotenv": "^16.4.5",
     "telegraf": "^4.16.3",
-    "tsx": "^4.7.1"
+    "tsx": "^4.7.1",
+    "typescript": "^6.0.2"
   }
 }
