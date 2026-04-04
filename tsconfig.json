@@ -1,8 +1,9 @@
 {
-  "compilerOptions": {
-    "outDir": "./dist",
-    "module": "commonjs",
-    "target": "es2019",
-    "esModuleInterop": true
-  }
+"compilerOptions": {
+"outDir": "./dist",
+"module": "commonjs",
+"target": "es2019",
+"esModuleInterop": true,
+"types": ["node"]   // 👈 ENG MUHIM QATOR
+}
 }
