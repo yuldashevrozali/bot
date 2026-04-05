@@ -306,8 +306,9 @@ bot.on('web_app_data', async (ctx) => {
     if (data.action === 'test_created') {
       const testCode = data.testCode;
       const authorName = ctx.from?.first_name || 'Noma\'lum';
+      const testTypeLabel = data.testType === 'simple' ? '📊 Oddiy test' : '🧠 RASCH modeli';
       await ctx.reply(
-        `✅ Test yaratildi!\n\n📋 Test kodi: ${testCode}\n👤 Yaratuvchi: ${authorName}\n\nBoshqalar ham shu kod orqali testni ishlashi mumkin.`,
+        `✅ Test yaratildi!\n\n📋 Test kodi: ${testCode}\n📌 Test turi: ${testTypeLabel}\n👤 Yaratuvchi: ${authorName}\n\nBoshqalar ham shu kod orqali testni ishlashi mumkin.`,
         Markup.inlineKeyboard([
           Markup.button.webApp('📱 Test ishlash', `${WEB_APP_URL}/take-test`)
         ])
