@@ -1,6 +1,9 @@
 import { Telegraf, Markup } from 'telegraf';
 import axios from 'axios';
 import dotenv from 'dotenv';
+import PDFDocument from 'pdfkit';
+import * as fs from 'fs';
+import * as path from 'path';
 dotenv.config();
 
 const bot = new Telegraf(process.env.BOT_TOKEN!);
@@ -195,6 +198,76 @@ bot.command('cancel', async (ctx) => {
   }
 });
 
+// PDF yaratish funksiyasi
+function createResultsPDF(testCode: number, results: any[], participantCount: number): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const filePath = path.join(__dirname, `test_${testCode}_results.pdf`);
+    const doc = new PDFDocument({ margin: 50 });
+    const stream = fs.createWriteStream(filePath);
+
+    doc.pipe(stream);
+
+    // Sarlavha
+    doc.fontSize(24).font('Helvetica-Bold').text(`Test #${testCode} Natijalari`, { align: 'center' });
+    doc.moveDown(0.5);
+    doc.fontSize(14).font('Helvetica').text(`Ishtirokchilar: ${participantCount} ta`, { align: 'center' });
+    doc.moveDown(1);
+    doc.fontSize(10).text(`Sana: ${new Date().toLocaleDateString('uz-UZ')}`, { align: 'center' });
+    doc.moveDown(1);
+
+    // Jadval sarlavhasi
+    doc.fontSize(12).font('Helvetica-Bold');
+    const colWidths = [40, 180, 70, 70, 70, 80];
+    let y = doc.y;
+
+    // Header
+    doc.rect(50, y, 510, 25).fill('#4F46E5');
+    doc.fillColor('white');
+    doc.text('O\'rin', 55, y + 7, { width: colWidths[0] });
+    doc.text('Ism Familiya', 55 + colWidths[0], y + 7, { width: colWidths[1] });
+    doc.text('Ball', 55 + colWidths[0] + colWidths[1], y + 7, { width: colWidths[2] });
+    doc.text('Foiz', 55 + colWidths[0] + colWidths[1] + colWidths[2], y + 7, { width: colWidths[3] });
+    doc.text('Daraja', 55 + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3], y + 7, { width: colWidths[4] });
+    doc.text('Sertifikat', 55 + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3] + colWidths[4], y + 7, { width: colWidths[5] });
+
+    y += 30;
+    doc.fillColor('black');
+
+    // Natijalar
+    for (let i = 0; i < results.length; i++) {
+      const r = results[i];
+      const bgColor = i % 2 === 0 ? '#F9FAFB' : '#FFFFFF';
+
+      doc.rect(50, y, 510, 22).fill(bgColor);
+      doc.fillColor('black').font('Helvetica');
+
+      const rank = i === 0 ? '🥇 1' : i === 1 ? '🥈 2' : i === 2 ? '🥉 3' : `   ${i + 1}`;
+      doc.text(rank, 55, y + 5, { width: colWidths[0] });
+      doc.text(`${r.name} ${r.surname}`, 55 + colWidths[0], y + 5, { width: colWidths[1] });
+      doc.text(String(r.scaledScore), 55 + colWidths[0] + colWidths[1], y + 5, { width: colWidths[2] });
+      doc.text(`${r.percentage}%`, 55 + colWidths[0] + colWidths[1] + colWidths[2], y + 5, { width: colWidths[3] });
+      doc.text(r.grade || 'F', 55 + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3], y + 5, { width: colWidths[4] });
+      doc.text(r.isCertified ? '✅ Ha' : '❌ Yo\'q', 55 + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3] + colWidths[4], y + 5, { width: colWidths[5] });
+
+      y += 24;
+
+      // Yangi sahifa kerak bo'lsa
+      if (y > 750) {
+        doc.addPage();
+        y = 50;
+      }
+    }
+
+    // Footer
+    doc.moveDown(2);
+    doc.fontSize(10).font('Helvetica-Oblique').text('Milliy Sertifikat Test Tizimi', { align: 'center' });
+
+    doc.end();
+    stream.on('finish', () => resolve(filePath));
+    stream.on('error', reject);
+  });
+}
+
 // Matn xabarlarni qabul qilish (broadcast va yakunlash uchun)
 bot.on('text', async (ctx) => {
   const userId = ctx.from?.id;
@@ -216,45 +289,26 @@ bot.on('text', async (ctx) => {
       const results = res.data.results;
       const participantCount = res.data.participantCount;
 
-      let message = `📊 <b>Test #${testCode} Yakunlandi!</b>\n\n`;
-      message += `👥 Ishtirokchilar: <b>${participantCount}</b> ta\n\n`;
-      message += `<b>🏆 Natijalar:</b>\n`;
-      message += `━━━━━━━━━━━━━━━━━━\n`;
+      // PDF yaratish
+      await ctx.reply(`📊 Test #${testCode} yakunlandi!\n👥 Ishtirokchilar: ${participantCount} ta\n\n📄 PDF tayyorlanmoqda...`);
 
-      for (let i = 0; i < results.length; i++) {
-        const r = results[i];
-        const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '  ';
-        message += `${medal} <b>${i + 1}. ${r.name} ${r.surname}</b>\n`;
-        message += `   📈 Ball: <b>${r.scaledScore}</b> | Foiz: ${r.percentage}%\n`;
-        message += `   🏅 Daraja: <b>${r.grade}</b> | ${r.isCertified ? '✅ Sertifikat' : '❌ Sertifikat yo\'q'}\n`;
-        message += `   🧠 Theta: ${r.theta}\n`;
-        if (i < results.length - 1) message += `──────────────────\n`;
-      }
+      const pdfPath = await createResultsPDF(testCode, results, participantCount);
 
-      message += `\n━━━━━━━━━━━━━━━━━━`;
-      message += `\n<i>Test yakunlandi.</i>`;
+      // PDF ni yuborish
+      await ctx.replyWithDocument({
+        source: pdfPath,
+        filename: `Test_${testCode}_Natijalari.pdf`
+      }, {
+        caption: `📊 <b>Test #${testCode} Natijalari</b>\n\n👥 Ishtirokchilar: <b>${participantCount}</b> ta\n📅 Sana: ${new Date().toLocaleDateString('uz-UZ')}\n\n<b>🏆 Top 3:</b>\n${results.slice(0, 3).map((r: any, i: number) => {
+          const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : '🥉';
+          return `${medal} ${r.name} ${r.surname} — ${r.scaledScore} ball (${r.grade})`;
+        }).join('\n')}`,
+        parse_mode: 'HTML'
+      });
 
-      if (message.length > 4000) {
-        const parts: string[] = [];
-        let current = `📊 <b>Test #${testCode} Yakunlandi!</b>\n\n👥 Ishtirokchilar: <b>${participantCount}</b> ta\n\n`;
-        for (let i = 0; i < results.length; i++) {
-          const r = results[i];
-          const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '  ';
-          const entry = `${medal} <b>${i + 1}. ${r.name} ${r.surname}</b>\n   📈 Ball: <b>${r.scaledScore}</b> | Foiz: ${r.percentage}%\n   🏅 Daraja: <b>${r.grade}</b> | ${r.isCertified ? '✅' : '❌'}\n`;
-          if ((current + entry).length > 4000) {
-            parts.push(current);
-            current = entry;
-          } else {
-            current += entry;
-          }
-        }
-        parts.push(current);
-        for (let i = 0; i < parts.length; i++) {
-          await ctx.reply(parts[i], { parse_mode: 'HTML' });
-        }
-      } else {
-        await ctx.reply(message, { parse_mode: 'HTML' });
-      }
+      // PDF faylni o'chirish
+      fs.unlinkSync(pdfPath);
+
     } catch (e: any) {
       const errorMsg = e.response?.data?.error || 'Xatolik yuz berdi';
       await ctx.reply(`❌ ${errorMsg}`);
