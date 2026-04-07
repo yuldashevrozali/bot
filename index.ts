@@ -43,7 +43,7 @@ const mainMenuKeyboard = Markup.inlineKeyboard([
 const adminKeyboard = Markup.inlineKeyboard([
   [Markup.button.callback('👥 Barcha userlar', 'admin_users')],
   [Markup.button.callback('📝 Jami testlar', 'admin_tests')],
-  [Markup.button.callback('📢 Reklama yuborish', 'admin_broadcast')],
+  [Markup.button.callback('📢 Reklama yuborish sahifasi', 'admin_broadcast')],
 ]);
 
 // /start handler
