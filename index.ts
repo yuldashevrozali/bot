@@ -98,20 +98,27 @@ bot.start(async (ctx) => {
 
 // Callback: Obunani tekshirish
 // check_sub callback - to'g'rilangan qismi
+// Callback: Obunani tekshirish
 bot.action('check_sub', async (ctx) => {
   const userId = ctx.from?.id;
   try {
     const member = await ctx.telegram.getChatMember(CHANNEL_ID!, userId!);
     const isMember = ['creator', 'administrator', 'member'].includes(member.status);
+    
     if (isMember) {
       const registered = await isUserRegistered(userId!.toString());
       const userName = ctx.from?.first_name || 'Foydalanuvchi';
 
       if (registered) {
+        // 1. Obuna tekshirish xabarini inline tugma bilan almashtiramiz (yoki shunchaki matn qoldiramiz)
         await ctx.editMessageText(
-          `👋 Marhamat, ${userName}!\n\nQuyidagi tugmalardan foydalaning:`,
-          { reply_markup: mainKeyboard.reply_markup }  // ✅ Tuzatildi
+          `👋 Marhamat, ${userName}!\n\n✅ Obuna tasdiqlandi! Asosiy menyu pastda paydo bo'ldi:`,
+          Markup.inlineKeyboard([
+            Markup.button.callback('✅ Tasdiqlandi', 'noop') // Telegram talab qiladi
+          ])
         );
+        
+        // 2. Oddiy keyboardni YANGI xabar sifatida yuboramiz
         await ctx.reply(
           `📌 Asosiy menyu:`,
           { reply_markup: mainKeyboard.reply_markup }
@@ -119,11 +126,9 @@ bot.action('check_sub', async (ctx) => {
       } else {
         await ctx.editMessageText(
           `✅ Kanalga obuna bo'lganingiz tasdiqlandi!\n\nEndi ro'yxatdan o'ting:`,
-          {
-            reply_markup: Markup.inlineKeyboard([
-              Markup.button.webApp('📝 Ro\'yxatdan o\'tish', WEB_APP_URL)
-            ]).reply_markup
-          }  // ✅ Tuzatildi
+          Markup.inlineKeyboard([
+            Markup.button.webApp('📝 Ro\'yxatdan o\'tish', WEB_APP_URL)
+          ])
         );
       }
     } else {
