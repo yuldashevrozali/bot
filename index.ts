@@ -49,6 +49,7 @@ const adminKeyboard = Markup.inlineKeyboard([
 ]);
 
 // /start handler
+// /start handler - to'g'rilangan qismi
 bot.start(async (ctx) => {
   const userId = ctx.from?.id;
   if (!userId) return;
@@ -60,10 +61,12 @@ bot.start(async (ctx) => {
     if (!isMember) {
       return ctx.reply(
         `👋 Assalomu alaykum!\n\nBotdan foydalanish uchun quyidagi kanalga obuna bo'ling!\n\n📢 Kanal: @${CHANNEL_USERNAME}\n\n✅ Obuna bo'lganingizdan so'ng "🔍 Obunani tekshirish" tugmasini bosing.`,
-        Markup.inlineKeyboard([
-          Markup.button.url('📢 Kanalga obuna bo\'lish', `https://t.me/${CHANNEL_USERNAME}`),
-          Markup.button.callback('🔍 Obunani tekshirish', 'check_sub')
-        ])
+        {
+          reply_markup: Markup.inlineKeyboard([
+            Markup.button.url('📢 Kanalga obuna bo\'lish', `https://t.me/${CHANNEL_USERNAME}`),
+            Markup.button.callback('🔍 Obunani tekshirish', 'check_sub')
+          ]).reply_markup
+        }
       );
     }
 
@@ -78,12 +81,14 @@ bot.start(async (ctx) => {
         }
       );
     } else {
+      // ✅ BU YERDA XATO BOR EDI - TUZATILDI:
       return ctx.reply(
         `✅ Kanalga obuna bo'lganingiz tasdiqlandi!\n\nEndi ro'yxatdan o'ting:`,
-        Markup.inlineKeyboard([
-          Markup.button.webApp('📝 Ro\'yxatdan o\'tish', WEB_APP_URL)
-        ]),
-        { reply_markup: mainKeyboard.reply_markup }
+        {
+          reply_markup: Markup.inlineKeyboard([
+            Markup.button.webApp('📝 Ro\'yxatdan o\'tish', WEB_APP_URL)
+          ]).reply_markup
+        }
       );
     }
   } catch (err) {
@@ -92,6 +97,7 @@ bot.start(async (ctx) => {
 });
 
 // Callback: Obunani tekshirish
+// check_sub callback - to'g'rilangan qismi
 bot.action('check_sub', async (ctx) => {
   const userId = ctx.from?.id;
   try {
@@ -103,7 +109,8 @@ bot.action('check_sub', async (ctx) => {
 
       if (registered) {
         await ctx.editMessageText(
-          `👋 Marhamat, ${userName}!\n\nQuyidagi tugmalardan foydalaning:`
+          `👋 Marhamat, ${userName}!\n\nQuyidagi tugmalardan foydalaning:`,
+          { reply_markup: mainKeyboard.reply_markup }  // ✅ Tuzatildi
         );
         await ctx.reply(
           `📌 Asosiy menyu:`,
@@ -112,9 +119,11 @@ bot.action('check_sub', async (ctx) => {
       } else {
         await ctx.editMessageText(
           `✅ Kanalga obuna bo'lganingiz tasdiqlandi!\n\nEndi ro'yxatdan o'ting:`,
-          Markup.inlineKeyboard([
-            Markup.button.webApp('📝 Ro\'yxatdan o\'tish', WEB_APP_URL)
-          ])
+          {
+            reply_markup: Markup.inlineKeyboard([
+              Markup.button.webApp('📝 Ro\'yxatdan o\'tish', WEB_APP_URL)
+            ]).reply_markup
+          }  // ✅ Tuzatildi
         );
       }
     } else {
