@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import PDFDocument from 'pdfkit';
 import * as fs from 'fs';
 import * as path from 'path';
+
 dotenv.config();
 
 const bot = new Telegraf(process.env.BOT_TOKEN!);
@@ -32,12 +33,24 @@ async function isUserRegistered(telegramId: string): Promise<boolean> {
   }
 }
 
-// Asosiy menyu — inline keyboard
-const mainMenuKeyboard = Markup.inlineKeyboard([
-  [Markup.button.webApp('📝 Test Yaratish', WEB_APP_URL)],
-  [Markup.button.webApp('📋 Test Ishlash', WEB_APP_URL)],
-  [Markup.button.webApp('📊 Mening Natijalarim', WEB_APP_URL)],
+// 📚 Asosiy inline keyboard menu (rasmdagi kabi)
+const mainInlineKeyboard = Markup.inlineKeyboard([
+  [Markup.button.webApp('📚 Milliy sertifikat testlari', WEB_APP_URL)],
+  [
+    Markup.button.webApp('➕ Test yaratish', `${WEB_APP_URL}/create-test`),
+    Markup.button.webApp('✅ Javob yuborish', `${WEB_APP_URL}/submit-answer`)
+  ],
+  [
+    Markup.button.webApp('👤 Mening ma\'lumotlarim', `${WEB_APP_URL}/profile`),
+    Markup.button.webApp('📊 Mening testlarim', `${WEB_APP_URL}/my-tests`)
+  ],
+  [Markup.button.webApp('ℹ️ Yo\'riqnoma', `${WEB_APP_URL}/guide`)]
 ]);
+
+// Oddiy keyboard (reply keyboard)
+const replyKeyboard = Markup.keyboard([
+  ['📝 Test Yaratish', '📋 Test Ishlash', '👤 Profil']
+]).resize().oneTime(false);
 
 // Admin panel keyboard
 const adminKeyboard = Markup.inlineKeyboard([
@@ -70,8 +83,10 @@ bot.start(async (ctx) => {
 
     if (registered) {
       return ctx.reply(
-        `👋 Marhamat, tugmalardan foydalaning, ${userName}!`,
-        mainMenuKeyboard
+        `👋 Marhamat, ${userName}!\n\nQuyidagi tugmalardan foydalaning:`,
+        {
+          reply_markup: mainInlineKeyboard.reply_markup
+        }
       );
     } else {
       return ctx.reply(
@@ -98,11 +113,8 @@ bot.action('check_sub', async (ctx) => {
 
       if (registered) {
         await ctx.editMessageText(
-          `👋 Marhamat, tugmalardan foydalaning, ${userName}!`
-        );
-        await ctx.reply(
-          `📌 Asosiy menyu:`,
-          mainMenuKeyboard
+          `👋 Marhamat, ${userName}!\n\nQuyidagi tugmalardan foydalaning:`,
+          mainInlineKeyboard
         );
       } else {
         await ctx.editMessageText(
@@ -118,6 +130,14 @@ bot.action('check_sub', async (ctx) => {
   } catch {
     ctx.answerCbQuery('Bot kanalda admin emas yoki xatolik.');
   }
+});
+
+// /menu - yangi inline keyboard menyu
+bot.command('menu', async (ctx) => {
+  await ctx.reply(
+    `📌 Asosiy menyu:`,
+    mainInlineKeyboard
+  );
 });
 
 // /adminman — Admin panel
@@ -273,6 +293,34 @@ bot.on('text', async (ctx) => {
   const userId = ctx.from?.id;
   const text = ctx.text || '';
 
+  // Handle keyboard buttons
+  if (text === '📝 Test Yaratish') {
+    return ctx.reply(
+      '📝 Test yaratish uchun quyidagi tugmani bosing:',
+      Markup.inlineKeyboard([
+        Markup.button.webApp('📝 Test Yaratish', `${WEB_APP_URL}/create-test`)
+      ])
+    );
+  }
+
+  if (text === '📋 Test Ishlash') {
+    return ctx.reply(
+      '📋 Test ishlash uchun quyidagi tugmani bosing:',
+      Markup.inlineKeyboard([
+        Markup.button.webApp('📋 Test Ishlash', `${WEB_APP_URL}/take-test`)
+      ])
+    );
+  }
+
+  if (text === '👤 Profil') {
+    return ctx.reply(
+      '👤 Profil uchun quyidagi tugmani bosing:',
+      Markup.inlineKeyboard([
+        Markup.button.webApp('👤 Profil', `${WEB_APP_URL}/profile`)
+      ])
+    );
+  }
+
   // 1. /yakunlash_(testCode) - Testni yakunlash
   const finalizeMatch = text.match(/^\/yakunlash_(\d+)$/);
   if (finalizeMatch) {
@@ -353,7 +401,7 @@ bot.on('web_app_data', async (ctx) => {
     if (data.action === 'registered' && data.name) {
       await ctx.reply(
         `🎉 Xush kelibsiz, ${data.name}!\n\nSiz muvaffaqiyatli ro'yxatdan o'tdingiz!\n\nMarhamat, quyidagi tugmalardan foydalaning:`,
-        mainMenuKeyboard
+        mainInlineKeyboard
       );
     }
     
@@ -373,11 +421,49 @@ bot.on('web_app_data', async (ctx) => {
   }
 });
 
-// /menu - asosiy menyu
-bot.command('menu', async (ctx) => {
+// Command handlers for quick access to specific pages
+bot.command('tests', async (ctx) => {
   await ctx.reply(
-    `📌 Asosiy menyu:`,
-    mainMenuKeyboard
+    '📚 Milliy sertifikat testlari:',
+    Markup.inlineKeyboard([
+      Markup.button.webApp('📚 Testlarni ko\'rish', WEB_APP_URL)
+    ])
+  );
+});
+
+bot.command('create', async (ctx) => {
+  await ctx.reply(
+    '➕ Test yaratish:',
+    Markup.inlineKeyboard([
+      Markup.button.webApp('➕ Test yaratish', `${WEB_APP_URL}/create-test`)
+    ])
+  );
+});
+
+bot.command('profile', async (ctx) => {
+  await ctx.reply(
+    '👤 profilingiz:',
+    Markup.inlineKeyboard([
+      Markup.button.webApp('👤 Mening ma\'lumotlarim', `${WEB_APP_URL}/profile`)
+    ])
+  );
+});
+
+bot.command('mytests', async (ctx) => {
+  await ctx.reply(
+    '📊 Mening testlarim:',
+    Markup.inlineKeyboard([
+      Markup.button.webApp('📊 Mening testlarim', `${WEB_APP_URL}/my-tests`)
+    ])
+  );
+});
+
+bot.command('guide', async (ctx) => {
+  await ctx.reply(
+    'ℹ️ Yo\'riqnoma:',
+    Markup.inlineKeyboard([
+      Markup.button.webApp('ℹ️ Yo\'riqnoma', `${WEB_APP_URL}/guide`)
+    ])
   );
 });
 
