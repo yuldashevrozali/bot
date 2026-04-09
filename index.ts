@@ -323,7 +323,7 @@ bot.on('text', async (ctx) => {
     return ctx.reply(
       '✅ Javob yuborish uchun Web App ochilmoqda...',
       Markup.inlineKeyboard([
-        Markup.button.webApp('✅ Javob yuborish', `${WEB_APP_URL}#/submit-answer`)
+        Markup.button.webApp('✅ Javob yuborish', `${WEB_APP_URL}#/take-test`)
       ])
     );
   }
@@ -341,7 +341,7 @@ bot.on('text', async (ctx) => {
     return ctx.reply(
       '📊 Testlaringiz uchun Web App ochilmoqda...',
       Markup.inlineKeyboard([
-        Markup.button.webApp('📊 Mening testlarim', `${WEB_APP_URL}#/my-tests`)
+        Markup.button.webApp('📊 Mening testlarim', `${WEB_APP_URL}#/profile`)
       ])
     );
   }
