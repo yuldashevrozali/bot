@@ -86,7 +86,7 @@ bot.start(async (ctx) => {
         `✅ Kanalga obuna bo'lganingiz tasdiqlandi!\n\nEndi ro'yxatdan o'ting:`,
         {
           reply_markup: Markup.inlineKeyboard([
-            Markup.button.webApp('📝 Ro\'yxatdan o\'tish', WEB_APP_URL)
+            Markup.button.webApp('📝 Ro\'yxatdan o\'tish', `${WEB_APP_URL}#/`)
           ]).reply_markup
         }
       );
@@ -127,7 +127,7 @@ bot.action('check_sub', async (ctx) => {
         await ctx.editMessageText(
           `✅ Kanalga obuna bo'lganingiz tasdiqlandi!\n\nEndi ro'yxatdan o'ting:`,
           Markup.inlineKeyboard([
-            Markup.button.webApp('📝 Ro\'yxatdan o\'tish', WEB_APP_URL)
+            Markup.button.webApp('📝 Ro\'yxatdan o\'tish', `${WEB_APP_URL}#/`)
           ])
         );
       }
@@ -305,7 +305,7 @@ bot.on('text', async (ctx) => {
     return ctx.reply(
       '📚 Milliy sertifikat testlari uchun Web App ochilmoqda...',
       Markup.inlineKeyboard([
-        Markup.button.webApp('📚 Testlarni ochish', WEB_APP_URL)
+        Markup.button.webApp('📚 Testlarni ochish', `${WEB_APP_URL}#/`)
       ])
     );
   }
@@ -314,7 +314,7 @@ bot.on('text', async (ctx) => {
     return ctx.reply(
       '➕ Test yaratish uchun Web App ochilmoqda...',
       Markup.inlineKeyboard([
-        Markup.button.webApp('➕ Test yaratish', `${WEB_APP_URL}/create-test`)
+        Markup.button.webApp('➕ Test yaratish', `${WEB_APP_URL}#/create-test`)
       ])
     );
   }
@@ -323,7 +323,7 @@ bot.on('text', async (ctx) => {
     return ctx.reply(
       '✅ Javob yuborish uchun Web App ochilmoqda...',
       Markup.inlineKeyboard([
-        Markup.button.webApp('✅ Javob yuborish', `${WEB_APP_URL}/submit-answer`)
+        Markup.button.webApp('✅ Javob yuborish', `${WEB_APP_URL}#/submit-answer`)
       ])
     );
   }
@@ -332,7 +332,7 @@ bot.on('text', async (ctx) => {
     return ctx.reply(
       '👤 Profilingiz uchun Web App ochilmoqda...',
       Markup.inlineKeyboard([
-        Markup.button.webApp('👤 Profil', `${WEB_APP_URL}/profile`)
+        Markup.button.webApp('👤 Profil', `${WEB_APP_URL}#/profile`)
       ])
     );
   }
@@ -341,7 +341,7 @@ bot.on('text', async (ctx) => {
     return ctx.reply(
       '📊 Testlaringiz uchun Web App ochilmoqda...',
       Markup.inlineKeyboard([
-        Markup.button.webApp('📊 Mening testlarim', `${WEB_APP_URL}/my-tests`)
+        Markup.button.webApp('📊 Mening testlarim', `${WEB_APP_URL}#/my-tests`)
       ])
     );
   }
@@ -350,7 +350,7 @@ bot.on('text', async (ctx) => {
     return ctx.reply(
       'ℹ️ Yo\'riqnoma uchun Web App ochilmoqda...',
       Markup.inlineKeyboard([
-        Markup.button.webApp('ℹ️ Yo\'riqnoma', `${WEB_APP_URL}/guide`)
+        Markup.button.webApp('ℹ️ Yo\'riqnoma', `${WEB_APP_URL}#/guide`)
       ])
     );
   }
