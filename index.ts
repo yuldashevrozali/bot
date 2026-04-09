@@ -33,23 +33,12 @@ async function isUserRegistered(telegramId: string): Promise<boolean> {
   }
 }
 
-// 📚 Asosiy inline keyboard menu (rasmdagi kabi)
-const mainInlineKeyboard = Markup.inlineKeyboard([
-  [Markup.button.webApp('📚 Milliy sertifikat testlari', WEB_APP_URL)],
-  [
-    Markup.button.webApp('➕ Test yaratish', `${WEB_APP_URL}/create-test`),
-    Markup.button.webApp('✅ Javob yuborish', `${WEB_APP_URL}/submit-answer`)
-  ],
-  [
-    Markup.button.webApp('👤 Mening ma\'lumotlarim', `${WEB_APP_URL}/profile`),
-    Markup.button.webApp('📊 Mening testlarim', `${WEB_APP_URL}/my-tests`)
-  ],
-  [Markup.button.webApp('ℹ️ Yo\'riqnoma', `${WEB_APP_URL}/guide`)]
-]);
-
-// Oddiy keyboard (reply keyboard)
-const replyKeyboard = Markup.keyboard([
-  ['📝 Test Yaratish', '📋 Test Ishlash', '👤 Profil']
+// Asosiy reply keyboard (oddiy tugmalar - rasmdagi kabi)
+const mainKeyboard = Markup.keyboard([
+  ['📚 Milliy sertifikat testlari'],
+  ['➕ Test yaratish', '✅ Javob yuborish'],
+  ['👤 Mening ma\'lumotlarim', '📊 Mening testlarim'],
+  ['ℹ️ Yo\'riqnoma']
 ]).resize().oneTime(false);
 
 // Admin panel keyboard
@@ -85,7 +74,7 @@ bot.start(async (ctx) => {
       return ctx.reply(
         `👋 Marhamat, ${userName}!\n\nQuyidagi tugmalardan foydalaning:`,
         {
-          reply_markup: mainInlineKeyboard.reply_markup
+          reply_markup: mainKeyboard.reply_markup
         }
       );
     } else {
@@ -93,7 +82,8 @@ bot.start(async (ctx) => {
         `✅ Kanalga obuna bo'lganingiz tasdiqlandi!\n\nEndi ro'yxatdan o'ting:`,
         Markup.inlineKeyboard([
           Markup.button.webApp('📝 Ro\'yxatdan o\'tish', WEB_APP_URL)
-        ])
+        ]),
+        { reply_markup: mainKeyboard.reply_markup }
       );
     }
   } catch (err) {
@@ -113,8 +103,11 @@ bot.action('check_sub', async (ctx) => {
 
       if (registered) {
         await ctx.editMessageText(
-          `👋 Marhamat, ${userName}!\n\nQuyidagi tugmalardan foydalaning:`,
-          mainInlineKeyboard
+          `👋 Marhamat, ${userName}!\n\nQuyidagi tugmalardan foydalaning:`
+        );
+        await ctx.reply(
+          `📌 Asosiy menyu:`,
+          { reply_markup: mainKeyboard.reply_markup }
         );
       } else {
         await ctx.editMessageText(
@@ -132,11 +125,11 @@ bot.action('check_sub', async (ctx) => {
   }
 });
 
-// /menu - yangi inline keyboard menyu
+// /menu - asosiy menyu
 bot.command('menu', async (ctx) => {
   await ctx.reply(
     `📌 Asosiy menyu:`,
-    mainInlineKeyboard
+    { reply_markup: mainKeyboard.reply_markup }
   );
 });
 
@@ -288,35 +281,62 @@ function createResultsPDF(testCode: number, results: any[], participantCount: nu
   });
 }
 
-// Matn xabarlarni qabul qilish (broadcast va yakunlash uchun)
+// Matn xabarlarni qabul qilish (tugmalar va broadcast uchun)
 bot.on('text', async (ctx) => {
   const userId = ctx.from?.id;
   const text = ctx.text || '';
 
-  // Handle keyboard buttons
-  if (text === '📝 Test Yaratish') {
+  // Reply keyboard tugmalarini handle qilish - Web App ochish
+  if (text === '📚 Milliy sertifikat testlari') {
     return ctx.reply(
-      '📝 Test yaratish uchun quyidagi tugmani bosing:',
+      '📚 Milliy sertifikat testlari uchun Web App ochilmoqda...',
       Markup.inlineKeyboard([
-        Markup.button.webApp('📝 Test Yaratish', `${WEB_APP_URL}/create-test`)
+        Markup.button.webApp('📚 Testlarni ochish', WEB_APP_URL)
       ])
     );
   }
 
-  if (text === '📋 Test Ishlash') {
+  if (text === '➕ Test yaratish') {
     return ctx.reply(
-      '📋 Test ishlash uchun quyidagi tugmani bosing:',
+      '➕ Test yaratish uchun Web App ochilmoqda...',
       Markup.inlineKeyboard([
-        Markup.button.webApp('📋 Test Ishlash', `${WEB_APP_URL}/take-test`)
+        Markup.button.webApp('➕ Test yaratish', `${WEB_APP_URL}/create-test`)
       ])
     );
   }
 
-  if (text === '👤 Profil') {
+  if (text === '✅ Javob yuborish') {
     return ctx.reply(
-      '👤 Profil uchun quyidagi tugmani bosing:',
+      '✅ Javob yuborish uchun Web App ochilmoqda...',
+      Markup.inlineKeyboard([
+        Markup.button.webApp('✅ Javob yuborish', `${WEB_APP_URL}/submit-answer`)
+      ])
+    );
+  }
+
+  if (text === '👤 Mening ma\'lumotlarim') {
+    return ctx.reply(
+      '👤 Profilingiz uchun Web App ochilmoqda...',
       Markup.inlineKeyboard([
         Markup.button.webApp('👤 Profil', `${WEB_APP_URL}/profile`)
+      ])
+    );
+  }
+
+  if (text === '📊 Mening testlarim') {
+    return ctx.reply(
+      '📊 Testlaringiz uchun Web App ochilmoqda...',
+      Markup.inlineKeyboard([
+        Markup.button.webApp('📊 Mening testlarim', `${WEB_APP_URL}/my-tests`)
+      ])
+    );
+  }
+
+  if (text === 'ℹ️ Yo\'riqnoma') {
+    return ctx.reply(
+      'ℹ️ Yo\'riqnoma uchun Web App ochilmoqda...',
+      Markup.inlineKeyboard([
+        Markup.button.webApp('ℹ️ Yo\'riqnoma', `${WEB_APP_URL}/guide`)
       ])
     );
   }
@@ -401,7 +421,7 @@ bot.on('web_app_data', async (ctx) => {
     if (data.action === 'registered' && data.name) {
       await ctx.reply(
         `🎉 Xush kelibsiz, ${data.name}!\n\nSiz muvaffaqiyatli ro'yxatdan o'tdingiz!\n\nMarhamat, quyidagi tugmalardan foydalaning:`,
-        mainInlineKeyboard
+        { reply_markup: mainKeyboard.reply_markup }
       );
     }
     
@@ -411,60 +431,12 @@ bot.on('web_app_data', async (ctx) => {
       const testTypeLabel = data.testType === 'simple' ? '📊 Oddiy test' : '🧠 RASCH modeli';
       await ctx.reply(
         `✅ Test yaratildi!\n\n📋 Test kodi: ${testCode}\n📌 Test turi: ${testTypeLabel}\n👤 Yaratuvchi: ${authorName}\n\nBoshqalar ham shu kod orqali testni ishlashi mumkin.`,
-        Markup.inlineKeyboard([
-          Markup.button.webApp('📱 Test ishlash', `${WEB_APP_URL}/take-test`)
-        ])
+        { reply_markup: mainKeyboard.reply_markup }
       );
     }
   } catch {
     // Ma'lumot noto'g'ri formatda
   }
-});
-
-// Command handlers for quick access to specific pages
-bot.command('tests', async (ctx) => {
-  await ctx.reply(
-    '📚 Milliy sertifikat testlari:',
-    Markup.inlineKeyboard([
-      Markup.button.webApp('📚 Testlarni ko\'rish', WEB_APP_URL)
-    ])
-  );
-});
-
-bot.command('create', async (ctx) => {
-  await ctx.reply(
-    '➕ Test yaratish:',
-    Markup.inlineKeyboard([
-      Markup.button.webApp('➕ Test yaratish', `${WEB_APP_URL}/create-test`)
-    ])
-  );
-});
-
-bot.command('profile', async (ctx) => {
-  await ctx.reply(
-    '👤 profilingiz:',
-    Markup.inlineKeyboard([
-      Markup.button.webApp('👤 Mening ma\'lumotlarim', `${WEB_APP_URL}/profile`)
-    ])
-  );
-});
-
-bot.command('mytests', async (ctx) => {
-  await ctx.reply(
-    '📊 Mening testlarim:',
-    Markup.inlineKeyboard([
-      Markup.button.webApp('📊 Mening testlarim', `${WEB_APP_URL}/my-tests`)
-    ])
-  );
-});
-
-bot.command('guide', async (ctx) => {
-  await ctx.reply(
-    'ℹ️ Yo\'riqnoma:',
-    Markup.inlineKeyboard([
-      Markup.button.webApp('ℹ️ Yo\'riqnoma', `${WEB_APP_URL}/guide`)
-    ])
-  );
 });
 
 bot.launch();
